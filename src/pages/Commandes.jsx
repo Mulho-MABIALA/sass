@@ -1,116 +1,233 @@
 import { useState } from 'react'
-import Badge from '../components/ui/Badge'
 import SlidePanel from '../components/ui/SlidePanel'
 import { orders, statusConfig } from '../data/mockData'
 
-const periods = ['Aujourd\'hui', 'Cette semaine', 'Ce mois', '3 mois', 'Cette année']
-const tabs = ['Tous', 'En attente', 'Confirmé', 'Expédié', 'Livré', 'Annulé']
+const TIME_FILTERS = ['Tout', "Aujourd'hui", 'Cette semaine', 'Ce mois']
 
-const kpis = [
-  { label: 'Total commandes', value: '348', color: 'text-blue-600 bg-blue-50' },
-  { label: 'En attente', value: '24', color: 'text-amber-600 bg-amber-50' },
-  { label: 'Expédiées', value: '89', color: 'text-brand-600 bg-brand-50' },
-  { label: 'Livrées', value: '201', color: 'text-emerald-600 bg-emerald-50' },
-  { label: 'Revenu total', value: '24 380 FCFA', color: 'text-amber-700 bg-amber-100', highlight: true },
+const STATUS_TABS = [
+  { key: 'toutes',    label: 'Toutes',       statuses: null },
+  { key: 'attente',   label: 'En attente',   statuses: ['attente'] },
+  { key: 'livraison', label: 'En livraison', statuses: ['livraison'] },
+  { key: 'livree',    label: 'Livrees',      statuses: ['livree'] },
+  { key: 'annulee',   label: 'Annulees',     statuses: ['annulee'] },
 ]
 
+const formatPrice = (v) => v?.toLocaleString('fr-FR') + ' F'
+
+const relativeDate = (dateStr) => {
+  const today = new Date()
+  const [d, m, y] = dateStr.split('/')
+  const date = new Date(`${y}-${m}-${d}`)
+  const diffDays = Math.round((today - date) / 86400000)
+  if (diffDays === 0) return "A l'instant"
+  if (diffDays === 1) return 'Hier'
+  if (diffDays < 7) return `Il y a ${diffDays}j`
+  return dateStr
+}
+
 export default function Commandes() {
-  const [period, setPeriod] = useState('Ce mois')
-  const [tab, setTab] = useState('Tous')
+  const [timeFilter, setTimeFilter] = useState('Tout')
+  const [statusTab, setStatusTab] = useState('toutes')
+  const [search, setSearch] = useState('')
   const [panel, setPanel] = useState(false)
   const [selected, setSelected] = useState(null)
-  const [note, setNote] = useState('')
 
-  const openOrder = (order) => {
-    setSelected(order)
-    setNote('')
-    setPanel(true)
-  }
+  const openOrder = (order) => { setSelected(order); setPanel(true) }
 
-  const filtered = tab === 'Tous' ? orders : orders.filter(o => statusConfig[o.status]?.label === tab)
+  const filtered = orders.filter(o => {
+    const tab = STATUS_TABS.find(t => t.key === statusTab)
+    const matchStatus = !tab?.statuses || tab.statuses.includes(o.status)
+    const q = search.toLowerCase()
+    const matchSearch = !q || o.client.toLowerCase().includes(q) || o.phone?.includes(q) || o.id.toLowerCase().includes(q)
+    return matchStatus && matchSearch
+  })
+
+  const count = (statuses) => statuses ? orders.filter(o => statuses.includes(o.status)).length : orders.length
+  const revenu = orders.filter(o => o.status === 'livree').reduce((s, o) => s + o.amount, 0)
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-extrabold text-gray-900">Commandes</h1>
-          <p className="text-sm text-gray-500">{orders.length} commandes au total</p>
-        </div>
-        <button className="btn-secondary text-sm gap-2 flex items-center">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-          </svg>
-          Exporter
-        </button>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
-        {kpis.map(k => (
-          <div key={k.label} className={`card ${k.highlight ? 'border-amber-200 ring-1 ring-amber-200' : ''}`}>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${k.color}`}>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+    <div className="space-y-5 pb-20">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            label: 'Total', value: orders.length,
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
               </svg>
+            ),
+            iconBg: 'bg-brand-50 text-brand-500',
+          },
+          {
+            label: 'En attente', value: count(['attente']),
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            ),
+            iconBg: 'bg-amber-50 text-amber-500',
+          },
+          {
+            label: 'En livraison', value: count(['livraison']),
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+              </svg>
+            ),
+            iconBg: 'bg-blue-50 text-blue-500',
+          },
+          {
+            label: 'Livrees', value: count(['livree']),
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            ),
+            iconBg: 'bg-emerald-50 text-emerald-500',
+          },
+        ].map(s => (
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${s.iconBg}`}>
+              {s.icon}
             </div>
-            <p className="text-lg font-extrabold text-gray-900">{k.value}</p>
-            <p className="text-xs text-gray-500">{k.label}</p>
+            <div>
+              <p className="text-xl font-extrabold text-gray-900">{s.value}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Period pills */}
+      {/* Revenu card */}
+      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-4 w-full max-w-xs shadow-sm">
+        <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p className="text-xl font-extrabold text-gray-900">{formatPrice(revenu || orders.reduce((s, o) => s + o.amount, 0))}</p>
+          <p className="text-xs text-amber-600 font-medium mt-0.5">Revenu (FCFA)</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input
+          className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder-gray-400"
+          placeholder="Rechercher par nom, telephone, numero..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Time filter pills */}
       <div className="flex gap-2 flex-wrap">
-        {periods.map(p => (
-          <button key={p} onClick={() => setPeriod(p)}
-            className={`period-btn ${period === p ? 'active' : ''}`}>{p}</button>
+        {TIME_FILTERS.map(t => (
+          <button
+            key={t}
+            onClick={() => setTimeFilter(t)}
+            className={`px-5 py-2 rounded-full text-sm font-medium transition ${
+              timeFilter === t
+                ? 'bg-brand-600 text-white'
+                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {t}
+          </button>
         ))}
       </div>
 
-      {/* Status tabs */}
+      {/* Status underline tabs */}
       <div className="border-b border-gray-200">
-        <div className="flex gap-1 overflow-x-auto">
-          {tabs.map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`tab-btn ${tab === t ? 'active' : ''}`}>{t}</button>
-          ))}
+        <div className="flex gap-0 overflow-x-auto">
+          {STATUS_TABS.map(t => {
+            const c = count(t.statuses)
+            const active = statusTab === t.key
+            return (
+              <button
+                key={t.key}
+                onClick={() => setStatusTab(t.key)}
+                className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition ${
+                  active
+                    ? 'border-brand-600 text-brand-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {t.label} ({c})
+              </button>
+            )
+          })}
         </div>
       </div>
 
       {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100">
-              {['Commande', 'Client', 'Produit', 'Date', 'Total', 'Statut', ''].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-gray-400 pb-3 pr-4 last:pr-0">{h}</th>
+              {['COMMANDE', 'CLIENT', 'PRODUIT', 'TOTAL', 'PAIEMENT', 'STATUT', 'DATE'].map(h => (
+                <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-400 tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {filtered.map(order => {
               const s = statusConfig[order.status]
+              const badgeStyle =
+                order.status === 'attente'   ? 'border border-amber-400 text-amber-600 bg-amber-50' :
+                order.status === 'livraison' ? 'border border-blue-400 text-blue-600 bg-blue-50' :
+                order.status === 'livree'    ? 'border border-emerald-400 text-emerald-600 bg-emerald-50' :
+                'border border-gray-300 text-gray-500 bg-gray-50'
               return (
                 <tr key={order.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => openOrder(order)}>
-                  <td className="py-3 pr-4 font-semibold text-gray-800">{order.id}</td>
-                  <td className="py-3 pr-4 text-gray-700">{order.client}</td>
-                  <td className="py-3 pr-4 text-gray-500">{order.product}</td>
-                  <td className="py-3 pr-4 text-gray-400 text-xs">{order.date}</td>
-                  <td className="py-3 pr-4 font-semibold text-gray-800">{order.total}</td>
-                  <td className="py-3 pr-4"><Badge color={s.color}>{s.label}</Badge></td>
-                  <td className="py-3 text-right">
-                    <button className="text-gray-400 hover:text-brand-600 transition">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
-                      </svg>
-                    </button>
+                  <td className="px-5 py-4">
+                    <span className="text-sm font-semibold text-brand-600">{order.id}</span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <p className="text-sm font-medium text-gray-800">{order.client}</p>
+                    {order.phone && <p className="text-xs text-gray-400 mt-0.5">+{order.phone.replace(/\s/g, '')}</p>}
+                  </td>
+                  <td className="px-5 py-4">
+                    <p className="text-sm text-gray-800">{order.product}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">x1 · {formatPrice(order.amount)}/u</p>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className="text-sm font-bold text-gray-900">{formatPrice(order.amount)}</span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className="text-sm text-gray-600">Paiement a la livraison</span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-lg ${badgeStyle}`}>
+                      {s?.label}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className="text-sm text-gray-400">{relativeDate(order.date)}</span>
                   </td>
                 </tr>
               )
             })}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center py-12 text-gray-400 text-sm">Aucune commande trouvée</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* Floating WhatsApp/chat button */}
+      <button className="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg flex items-center justify-center transition z-50">
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45zM12.045 21.785h-.004c-1.774 0-3.513-.476-5.031-1.378l-.361-.213-3.741.975.999-3.648-.235-.374a9.86 9.86 0 01-1.521-5.26c.001-5.45 4.436-9.884 9.892-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.452-4.437 9.887-9.879 9.89zm5.441-7.4c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        </svg>
+      </button>
 
       {/* Slide panel */}
       <SlidePanel
@@ -128,39 +245,41 @@ export default function Commandes() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs text-gray-400 mb-0.5">Client</p>
                 <p className="font-semibold text-gray-800">{selected.client}</p>
+                {selected.phone && <p className="text-xs text-gray-500">+{selected.phone.replace(/\s/g, '')}</p>}
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs text-gray-400 mb-0.5">Total</p>
-                <p className="font-semibold text-brand-600">{selected.total}</p>
+                <p className="font-semibold text-brand-600">{formatPrice(selected.amount)}</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs text-gray-400 mb-0.5">Produit</p>
                 <p className="font-semibold text-gray-800">{selected.product}</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-400 mb-0.5">Statut actuel</p>
-                <Badge color={statusConfig[selected.status].color}>{statusConfig[selected.status].label}</Badge>
+                <p className="text-xs text-gray-400 mb-0.5">Statut</p>
+                <p className="font-semibold text-gray-800">{statusConfig[selected.status]?.label}</p>
               </div>
             </div>
 
             <div>
               <p className="text-sm font-semibold text-gray-800 mb-2">Changer le statut</p>
               <div className="grid grid-cols-2 gap-2">
-                {['pending', 'confirmed', 'shipped', 'delivered'].map(s => {
-                  const cfg = statusConfig[s]
-                  return (
-                    <button key={s}
-                      className={`text-xs font-semibold py-2 px-3 rounded-xl border transition ${selected.status === s ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:border-brand-400 hover:bg-brand-50'}`}>
-                      {cfg.label}
-                    </button>
-                  )
-                })}
+                {['attente', 'livraison', 'livree', 'annulee'].map(s => (
+                  <button key={s}
+                    className={`text-xs font-semibold py-2 px-3 rounded-xl border transition ${
+                      selected.status === s
+                        ? 'border-brand-500 bg-brand-50 text-brand-700'
+                        : 'border-gray-200 text-gray-600 hover:border-brand-400 hover:bg-brand-50'
+                    }`}>
+                    {statusConfig[s]?.label}
+                  </button>
+                ))}
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-1.5">Note interne</label>
-              <textarea className="input-field text-sm resize-none" rows={3} placeholder="Ajouter une note…" value={note} onChange={e => setNote(e.target.value)}/>
+              <textarea className="input-field text-sm resize-none" rows={3} placeholder="Ajouter une note…"/>
             </div>
 
             <button className="btn-primary w-full text-sm">Enregistrer les modifications</button>
