@@ -105,7 +105,7 @@ export default function Produits() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Prix</label>
-              <input className="input-field text-sm" placeholder="0.00 €" value={form.price} onChange={e => setForm({...form, price: e.target.value})}/>
+              <input className="input-field text-sm" placeholder="0 FCFA" value={form.price} onChange={e => setForm({...form, price: e.target.value})}/>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>

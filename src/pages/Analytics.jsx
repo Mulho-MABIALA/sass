@@ -18,7 +18,7 @@ const brandLight = 'rgba(139,61,255,0.12)'
 const revenueData = {
   labels: months,
   datasets: [{
-    label: 'Chiffre d\'affaires (€)',
+    label: 'Chiffre d\'affaires (FCFA)',
     data: [8200, 9100, 10500, 9800, 11200, 13000, 11800, 14200, 12900, 15800, 17200, 24380],
     borderColor: brandPurple,
     backgroundColor: brandLight,
@@ -113,9 +113,9 @@ const barOpts = (indexAxis = 'x') => ({
 })
 
 const kpis = [
-  { label: 'CA ce mois', value: '24 380 €', change: '+12.5%', positive: true },
+  { label: 'CA ce mois', value: '24 380 FCFA', change: '+12.5%', positive: true },
   { label: 'Commandes totales', value: '348', change: '+8.2%', positive: true },
-  { label: 'Panier moyen', value: '70.06 €', change: '+3.8%', positive: true },
+  { label: 'Panier moyen', value: '70 FCFA', change: '+3.8%', positive: true },
   { label: 'Taux d\'annulation', value: '9.8%', change: '-1.2%', positive: true },
 ]
 

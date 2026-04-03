@@ -4,7 +4,7 @@ import { products, orders, statusConfig } from '../data/mockData'
 const kpis = [
   {
     label: "Chiffre d'affaires",
-    value: '24 380 €',
+    value: '24 380 FCFA',
     change: '+12.5%',
     positive: true,
     icon: (
@@ -53,9 +53,9 @@ const kpis = [
 ]
 
 const topProducts = [
-  { name: 'Pack Premium', sales: 124, revenue: '6 200 €', pct: 87 },
-  { name: 'Licence Pro', sales: 98, revenue: '4 900 €', pct: 69 },
-  { name: 'Starter Kit', sales: 76, revenue: '2 280 €', pct: 53 },
+  { name: 'Pack Premium', sales: 124, revenue: '6 200 FCFA', pct: 87 },
+  { name: 'Licence Pro', sales: 98, revenue: '4 900 FCFA', pct: 69 },
+  { name: 'Starter Kit', sales: 76, revenue: '2 280 FCFA', pct: 53 },
 ]
 
 const activity = [

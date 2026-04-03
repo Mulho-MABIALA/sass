@@ -11,7 +11,7 @@ const kpis = [
   { label: 'En attente', value: '24', color: 'text-amber-600 bg-amber-50' },
   { label: 'Expédiées', value: '89', color: 'text-brand-600 bg-brand-50' },
   { label: 'Livrées', value: '201', color: 'text-emerald-600 bg-emerald-50' },
-  { label: 'Revenu total', value: '24 380 €', color: 'text-amber-700 bg-amber-100', highlight: true },
+  { label: 'Revenu total', value: '24 380 FCFA', color: 'text-amber-700 bg-amber-100', highlight: true },
 ]
 
 export default function Commandes() {

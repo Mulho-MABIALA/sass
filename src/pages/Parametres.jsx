@@ -72,7 +72,7 @@ export default function Parametres() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Devise</label>
                   <select className="input-field text-sm">
-                    <option>EUR — €</option>
+                    <option>FCFA — XOF</option>
                     <option>USD — $</option>
                     <option>GBP — £</option>
                   </select>

@@ -168,7 +168,7 @@ export default function Landing() {
               </div>
               {/* Mock content */}
               <div className="grid grid-cols-4 gap-2 mb-3">
-                {['24 380 €', '348', '1 204', '87'].map((v, i) => (
+                {['24 380 FCFA', '348', '1 204', '87'].map((v, i) => (
                   <div key={i} className="bg-white rounded-xl p-3 border border-pink-50">
                     <div className="w-6 h-6 rounded-lg bg-brand-100 mb-2"/>
                     <p className="text-sm font-extrabold text-gray-800">{v}</p>
