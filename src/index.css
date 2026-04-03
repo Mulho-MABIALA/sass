@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  * { font-family: 'Inter', system-ui, sans-serif; }
+  body { background: #fff7fa; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: #fff0f7; }
+  ::-webkit-scrollbar-thumb { background: #ffadd8; border-radius: 99px; }
+}
+
+@layer components {
+
+  /* ── Sidebar ── */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/60 transition-all duration-150;
+  }
+  .sidebar-link:hover { background: rgba(255,255,255,0.08); color: white; }
+  .sidebar-link.active { background: rgba(225,29,122,0.3); color: white; font-weight: 600; }
+
+  /* ── Inputs ── */
+  .input-field {
+    @apply w-full px-4 py-2.5 text-sm border border-pink-100 rounded-xl
+           focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-brand-400
+           bg-white text-gray-800 placeholder-gray-400 transition;
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600
+           text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-rose;
+  }
+  .btn-secondary {
+    @apply flex items-center justify-center gap-2 border border-pink-200 bg-white
+           hover:bg-pink-50 text-gray-700 text-sm font-medium px-4 py-2.5 rounded-xl transition;
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-white rounded-2xl border border-pink-100 shadow-sm p-5;
+  }
+  .card-hover {
+    @apply bg-white rounded-2xl border border-pink-100 shadow-sm p-5 transition-all duration-200 cursor-pointer;
+  }
+  .card-hover:hover {
+    box-shadow: 0 8px 32px rgba(225,29,122,0.13);
+    border-color: #ffadd8;
+    transform: translateY(-2px);
+  }
+
+  /* ── Tabs ── */
+  .tab-btn {
+    @apply whitespace-nowrap text-sm font-medium px-4 py-2.5 border-b-2 border-transparent
+           text-gray-500 transition-all duration-150;
+  }
+  .tab-btn.active {
+    @apply border-brand-500 text-brand-600 font-semibold;
+  }
+  .tab-btn:not(.active):hover { @apply text-gray-700 border-gray-200; }
+
+  /* ── Section title ── */
+  .section-title {
+    @apply text-sm font-bold text-gray-800;
+    border-left: 3px solid #e11d7a;
+    padding-left: 10px;
+  }
+
+  /* ── Period buttons ── */
+  .period-btn {
+    @apply text-xs font-medium px-3.5 py-1.5 rounded-full border border-pink-100 text-gray-500 transition-all;
+  }
+  .period-btn.active {
+    @apply bg-brand-500 text-white border-brand-500 shadow-rose;
+  }
+  .period-btn:not(.active):hover { @apply bg-pink-50 border-pink-200 text-brand-600; }
+}
+
+/* ── Toggle switch ── */
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background: #ffd6eb; border-radius: 99px; transition: .25s;
+}
+.toggle-slider:before {
+  content: ''; position: absolute;
+  height: 18px; width: 18px; left: 3px; bottom: 3px;
+  background: white; border-radius: 50%; transition: .25s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+input:checked + .toggle-slider { background: #e11d7a; }
+input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+/* ── Slide panel ── */
+.slide-panel { transform: translateX(100%); transition: transform 0.28s cubic-bezier(.4,0,.2,1); }
+.slide-panel.open { transform: translateX(0); }
+
+/* ── Overlay ── */
+.overlay { opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+
+/* ── Toast ── */
+.toast { transform: translateY(100px); opacity: 0; transition: all .3s cubic-bezier(.4,0,.2,1); }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── Stock bar ── */
+.stock-bar { height: 6px; border-radius: 99px; background: #ffd6eb; overflow: hidden; }
+.stock-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+
+/* ── Section heading label ── */
+.label-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #e11d7a;
+}
