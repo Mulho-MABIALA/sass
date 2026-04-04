@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import SlidePanel from '../components/ui/SlidePanel'
 import { clients, orders, statusConfig } from '../data/mockData'
+import { Users, DollarSign, UserCheck, ShoppingBasket, Search, Phone, MapPin, CalendarDays, Clock, MessageCircle } from 'lucide-react'
 
 const TABS = ['Tous', 'VIP', 'Fideles', 'Nouveaux']
 
@@ -69,25 +70,10 @@ export default function Clients() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
-            label: 'Total clients', value: clients.length,
-            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
-            iconBg: 'bg-brand-50 text-brand-500', suffix: '',
-          },
-          {
-            label: 'Revenu total', value: formatPrice(revenuTotal),
-            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
-            iconBg: 'bg-amber-50 text-amber-500', suffix: '',
-          },
-          {
-            label: 'Fideles (2+ cmd)', value: fideles,
-            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>,
-            iconBg: 'bg-emerald-50 text-emerald-500', suffix: '',
-          },
-          {
-            label: 'Panier moyen', value: formatPrice(panierMoyen),
-            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>,
-            iconBg: 'bg-blue-50 text-blue-500', suffix: '',
-          },
+            label: 'Total clients',    value: clients.length,       icon: <Users         className="w-5 h-5" />, iconBg: 'bg-brand-50 text-brand-500' },
+          { label: 'Revenu total',      value: formatPrice(revenuTotal), icon: <DollarSign  className="w-5 h-5" />, iconBg: 'bg-amber-50 text-amber-500' },
+          { label: 'Fideles (2+ cmd)',  value: fideles,              icon: <UserCheck     className="w-5 h-5" />, iconBg: 'bg-emerald-50 text-emerald-500' },
+          { label: 'Panier moyen',      value: formatPrice(panierMoyen), icon: <ShoppingBasket className="w-5 h-5" />, iconBg: 'bg-blue-50 text-blue-500',
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${s.iconBg}`}>
@@ -104,9 +90,7 @@ export default function Clients() {
       {/* Search + sort */}
       <div className="flex gap-3">
         <div className="relative flex-1">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder-gray-400"
             placeholder="Rechercher par nom, telephone, adresse..."
@@ -142,8 +126,8 @@ export default function Clients() {
       <p className="text-sm text-gray-500">{filtered.length} client{filtered.length > 1 ? 's' : ''}</p>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[750px]">
           <thead>
             <tr className="border-b border-gray-100">
               {['CLIENT', 'TELEPHONE', 'SEGMENT', 'COMMANDES', 'TOTAL DEPENSE', 'PANIER MOY.', 'DERNIERE CMD'].map(h => (
@@ -213,9 +197,7 @@ export default function Clients() {
             rel="noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition text-sm"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45zM12.045 21.785h-.004c-1.774 0-3.513-.476-5.031-1.378l-.361-.213-3.741.975.999-3.648-.235-.374a9.86 9.86 0 01-1.521-5.26c.001-5.45 4.436-9.884 9.892-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.452-4.437 9.887-9.879 9.89zm5.441-7.4c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-            </svg>
+            <MessageCircle className="w-5 h-5" />
             WhatsApp
           </a>
         }
@@ -237,9 +219,7 @@ export default function Clients() {
             {/* Contact */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                </svg>
+                <Phone className="w-4 h-4 text-gray-400" />
                 <p className="text-xs font-bold text-gray-500 tracking-widest uppercase">Contact</p>
               </div>
               <div className="space-y-3">
@@ -259,9 +239,7 @@ export default function Clients() {
             {/* Produits préférés */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
+                <CalendarDays className="w-4 h-4 text-gray-400" />
                 <p className="text-xs font-bold text-gray-500 tracking-widest uppercase">Produits preferes</p>
               </div>
               {clientOrders.length === 0 ? (
@@ -283,9 +261,7 @@ export default function Clients() {
             {/* Historique */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+                <Clock className="w-4 h-4 text-gray-400" />
                 <p className="text-xs font-bold text-gray-500 tracking-widest uppercase">
                   Historique ({clientOrders.length} commande{clientOrders.length > 1 ? 's' : ''})
                 </p>

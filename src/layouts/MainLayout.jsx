@@ -41,8 +41,18 @@ export default function MainLayout() {
             }
           }}
         />
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto">
           <Outlet />
+          <footer className="mt-8 border-t border-gray-100 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
+            <span>© 2026 <span className="font-semibold text-brand-500">inZeek</span>. Tous droits réservés.</span>
+            <div className="flex items-center gap-4">
+              <span>v1.0.0</span>
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"/>
+                Système opérationnel
+              </span>
+            </div>
+          </footer>
         </main>
       </div>
 

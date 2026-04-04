@@ -1,164 +1,293 @@
-import Badge from '../components/ui/Badge'
-import { products, orders, statusConfig } from '../data/mockData'
+import { useState } from 'react'
+import { Bar } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip } from 'chart.js'
+import { useNavigate } from 'react-router-dom'
+import {
+  DollarSign, ShoppingCart, Users, Package,
+  Clock, ArrowRight, ChevronRight, Star, TrendingUp
+} from 'lucide-react'
+import { products, orders, clients } from '../data/mockData'
 
-const kpis = [
-  {
-    label: "Chiffre d'affaires",
-    value: '24 380 FCFA',
-    change: '+12.5%',
-    positive: true,
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-      </svg>
-    ),
-    color: 'text-brand-600 bg-brand-50',
-  },
-  {
-    label: 'Commandes',
-    value: '348',
-    change: '+8.2%',
-    positive: true,
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-      </svg>
-    ),
-    color: 'text-blue-600 bg-blue-50',
-  },
-  {
-    label: 'Clients actifs',
-    value: '1 204',
-    change: '+3.1%',
-    positive: true,
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5.196-3.793M9 20H4v-2a4 4 0 015.196-3.793M15 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-      </svg>
-    ),
-    color: 'text-emerald-600 bg-emerald-50',
-  },
-  {
-    label: 'Produits actifs',
-    value: '87',
-    change: '-2',
-    positive: false,
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
-      </svg>
-    ),
-    color: 'text-amber-600 bg-amber-50',
-  },
-]
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip)
 
-const topProducts = [
-  { name: 'Pack Premium', sales: 124, revenue: '6 200 FCFA', pct: 87 },
-  { name: 'Licence Pro', sales: 98, revenue: '4 900 FCFA', pct: 69 },
-  { name: 'Starter Kit', sales: 76, revenue: '2 280 FCFA', pct: 53 },
-]
+const formatPrice = (v) => v?.toLocaleString('fr-FR') + ' F'
 
-const activity = [
-  { text: 'Nouvelle commande #1042 reçue', time: 'Il y a 5 min', color: 'bg-brand-100 text-brand-600' },
-  { text: 'Client Martin Dupont créé', time: 'Il y a 18 min', color: 'bg-blue-100 text-blue-600' },
-  { text: 'Stock faible : Starter Kit (3 restants)', time: 'Il y a 1h', color: 'bg-amber-100 text-amber-600' },
-  { text: 'Commande #1039 expédiée', time: 'Il y a 2h', color: 'bg-emerald-100 text-emerald-600' },
-]
+const relativeDate = (dateStr) => {
+  if (!dateStr) return '—'
+  const [d, m, y] = dateStr.split('/')
+  const date = new Date(`${y}-${m}-${d}`)
+  const diff = Math.round((new Date() - date) / 86400000)
+  if (diff === 0) return "A l'instant"
+  if (diff === 1) return 'Hier'
+  if (diff < 7) return `Il y a ${diff}j`
+  return dateStr
+}
+
+const greeting = () => {
+  const h = new Date().getHours()
+  if (h < 12) return { text: 'Bonjour', emoji: '☀️' }
+  if (h < 18) return { text: 'Bon après-midi', emoji: '🌤️' }
+  return { text: 'Bonsoir', emoji: '🌙' }
+}
+
+const weekDays = ['Sam', 'Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Auj.']
+const weekRevenue = [0, 0, 0, 0, 0, 0, orders.reduce((s, o) => s + o.amount, 0)]
 
 export default function Dashboard() {
+  const [period, setPeriod] = useState('Ce mois')
+  const navigate = useNavigate()
+  const { text: greetText, emoji: greetEmoji } = greeting()
+
+  const revenuTotal = orders.reduce((s, o) => s + o.amount, 0)
+  const commandesAttente = orders.filter(o => o.status === 'attente').length
+  const statusCounts = {
+    attente:   orders.filter(o => o.status === 'attente').length,
+    livraison: orders.filter(o => o.status === 'livraison').length,
+    livree:    orders.filter(o => o.status === 'livree').length,
+    annulee:   orders.filter(o => o.status === 'annulee').length,
+  }
+  const maxStatus = Math.max(...Object.values(statusCounts), 1)
+
+  const topProds = [...products]
+    .map(p => ({ ...p, sold: orders.filter(o => o.product.includes(p.name)).length }))
+    .sort((a, b) => b.sold - a.sold).slice(0, 5)
+  const maxSold = Math.max(...topProds.map(p => p.sold), 1)
+
+  const chartData = {
+    labels: weekDays,
+    datasets: [{
+      data: weekRevenue,
+      backgroundColor: weekRevenue.map((_, i) => i === weekRevenue.length - 1 ? '#7c3aed' : '#e5e7eb'),
+      borderRadius: 6,
+    }],
+  }
+  const chartOptions = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatPrice(ctx.raw) } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+      y: { grid: { color: '#f3f4f6' }, beginAtZero: true, ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => v === 0 ? '0' : `${Math.round(v / 1000)}K` } },
+    },
+  }
+
+  const kpis = [
+    { label: 'Revenu total',     value: formatPrice(revenuTotal), change: '+100%', Icon: DollarSign,   iconBg: 'bg-brand-50 text-brand-500',   bar: 'bg-brand-500' },
+    { label: 'Total commandes',  value: orders.length,            change: '+100%', Icon: ShoppingCart, iconBg: 'bg-amber-50 text-amber-500',   bar: 'bg-amber-400' },
+    { label: 'Clients',          value: clients.length,           change: '+100%', Icon: Users,        iconBg: 'bg-emerald-50 text-emerald-500', bar: 'bg-emerald-400' },
+    { label: 'Produits actifs',  value: products.filter(p => p.status === 'actif').length, change: null, Icon: Package, iconBg: 'bg-purple-50 text-purple-500', bar: 'bg-purple-400' },
+  ]
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 pb-10">
+
+      {/* Header */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs text-gray-400">{greetText} {greetEmoji}</p>
+          <h1 className="text-xl font-extrabold text-gray-900 mt-0.5">lo 👋</h1>
+          <p className="text-xs text-gray-400 mt-0.5">Voici le resume de votre activite</p>
+        </div>
+        <select
+          className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none text-gray-700"
+          value={period} onChange={e => setPeriod(e.target.value)}
+        >
+          {["Aujourd'hui", 'Cette semaine', 'Ce mois', 'Cette année'].map(p => <option key={p}>{p}</option>)}
+        </select>
+      </div>
+
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {kpis.map(kpi => (
-          <div key={kpi.label} className="card flex items-center gap-4">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${kpi.color}`}>
-              {kpi.icon}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {kpis.map(({ label, value, change, Icon, iconBg, bar }) => (
+          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-4 relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+                <Icon className="w-4 h-4" />
+              </div>
+              <p className="text-[10px] sm:text-xs text-gray-400 font-medium leading-tight">{label}</p>
             </div>
-            <div className="min-w-0">
-              <p className="text-xs text-gray-500 truncate">{kpi.label}</p>
-              <p className="text-xl font-extrabold text-gray-900">{kpi.value}</p>
-              <p className={`text-xs font-medium ${kpi.positive ? 'text-emerald-600' : 'text-red-500'}`}>{kpi.change} ce mois</p>
-            </div>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 leading-tight">{value}</p>
+            {change && (
+              <div className="mt-2">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <TrendingUp className="w-3 h-3" />{change}
+                </span>
+                <div className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${bar}`} style={{ width: '100%' }} />
+                </div>
+              </div>
+            )}
+            <div className={`absolute -bottom-3 -right-3 w-14 h-14 rounded-full opacity-10 ${iconBg.split(' ')[0]}`} />
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Recent orders */}
-        <div className="xl:col-span-2 card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="section-title">Commandes récentes</h2>
-            <a href="/commandes" className="text-xs text-brand-600 font-medium hover:underline">Voir tout</a>
+      {/* Alerte attente */}
+      {commandesAttente > 0 && (
+        <div className="flex items-center justify-between bg-amber-50 border-l-4 border-amber-400 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="text-sm font-medium text-amber-700">
+              {commandesAttente} commande{commandesAttente > 1 ? 's' : ''} en attente
+            </span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">#</th>
-                  <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">Client</th>
-                  <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">Produit</th>
-                  <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">Total</th>
-                  <th className="text-left text-xs font-medium text-gray-400 pb-2">Statut</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {orders.map(order => {
-                  const s = statusConfig[order.status]
-                  return (
-                    <tr key={order.id} className="hover:bg-gray-50 transition">
-                      <td className="py-2.5 pr-4 font-medium text-gray-700">{order.id}</td>
-                      <td className="py-2.5 pr-4 text-gray-600">{order.client}</td>
-                      <td className="py-2.5 pr-4 text-gray-500">{order.product}</td>
-                      <td className="py-2.5 pr-4 font-semibold text-gray-800">{order.total}</td>
-                      <td className="py-2.5">
-                        <Badge color={s.color}>{s.label}</Badge>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+          <button onClick={() => navigate('/commandes')} className="text-sm font-semibold text-brand-600 hover:underline flex items-center gap-1">
+            Voir <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Chart + Répartition */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold text-gray-900 border-l-4 border-brand-500 pl-3">Revenu cette semaine</h2>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-500 inline-block" />
+              <span className="text-xs text-gray-500">Revenu (FCFA)</span>
+            </div>
+          </div>
+          <div style={{ height: 180 }}>
+            <Bar data={chartData} options={chartOptions} />
           </div>
         </div>
 
-        {/* Right column */}
-        <div className="space-y-4">
-          {/* Top products */}
-          <div className="card">
-            <h2 className="section-title mb-4">Top produits</h2>
-            <div className="space-y-3">
-              {topProducts.map(p => (
-                <div key={p.name}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="font-medium text-gray-700">{p.name}</span>
-                    <span className="text-gray-500">{p.revenue}</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-500 rounded-full" style={{ width: `${p.pct}%` }}/>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-gray-900 border-l-4 border-brand-500 pl-3">Repartition commandes</h2>
+            <span className="text-xs text-gray-400">Par statut</span>
           </div>
-
-          {/* Activity */}
-          <div className="card">
-            <h2 className="section-title mb-4">Activité récente</h2>
-            <div className="space-y-3">
-              {activity.map((a, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${a.color.split(' ')[0]}`}/>
-                  <div>
-                    <p className="text-xs text-gray-700 font-medium">{a.text}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{a.time}</p>
+          <div className="space-y-4">
+            {[
+              { key: 'attente',   label: 'En attente',   dot: 'bg-amber-400' },
+              { key: 'livraison', label: 'En livraison', dot: 'bg-blue-400' },
+              { key: 'livree',    label: 'Livrees',      dot: 'bg-emerald-500' },
+              { key: 'annulee',   label: 'Annulees',     dot: 'bg-red-400' },
+            ].map(s => {
+              const count = statusCounts[s.key]
+              const pct = Math.round((count / maxStatus) * 100)
+              return (
+                <div key={s.key} className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
+                  <span className="text-xs text-gray-700 w-20 shrink-0">{s.label}</span>
+                  <span className="text-xs font-bold text-gray-900 w-4 shrink-0">{count}</span>
+                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${s.dot}`} style={{ width: `${pct}%` }} />
                   </div>
                 </div>
-              ))}
-            </div>
+              )
+            })}
           </div>
         </div>
       </div>
+
+      {/* Mes Produits */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-brand-500" />
+            <h2 className="text-sm font-bold text-gray-900">Mes Produits</h2>
+          </div>
+          <button onClick={() => navigate('/produits')} className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 transition">
+            Voir tout <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:overflow-visible sm:pb-0">
+          {products.filter(p => p.status === 'actif').map(p => {
+            const sold = orders.filter(o => o.product.includes(p.name)).length
+            const hasPromo = !!p.promoPrice
+            const discountPct = hasPromo ? Math.round((1 - p.price / p.promoPrice) * 100) : null
+            return (
+              <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition shrink-0 w-44 sm:w-auto">
+                <div className="relative bg-gray-100 h-32 sm:h-40 flex items-center justify-center">
+                  {p.imageUrl
+                    ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                    : <Package className="w-8 h-8 text-gray-300" />
+                  }
+                  {discountPct && (
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-lg">-{discountPct}%</span>
+                  )}
+                  {p.popular && <Star className="absolute top-2 right-2 w-4 h-4 text-amber-400 fill-amber-400" />}
+                </div>
+                <div className="p-3">
+                  <p className="text-xs sm:text-sm font-semibold text-gray-900 mb-1 truncate">{p.name}</p>
+                  <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                    <span className="text-xs sm:text-sm font-bold text-brand-600">{formatPrice(p.price)}</span>
+                    {hasPromo && <span className="text-[10px] text-gray-400 line-through">{formatPrice(p.promoPrice)}</span>}
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                    <ShoppingCart className="w-3 h-3" />
+                    {sold} vendus
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Commandes récentes + Top produits */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-gray-900 border-l-4 border-brand-500 pl-3">Commandes recentes</h2>
+            <button onClick={() => navigate('/commandes')} className="text-xs font-semibold text-brand-600 hover:underline">Voir tout</button>
+          </div>
+          <div className="space-y-3">
+            {orders.slice(0, 5).map(o => {
+              const iconBg =
+                o.status === 'attente'   ? 'bg-amber-100'   :
+                o.status === 'livraison' ? 'bg-blue-100'    :
+                o.status === 'livree'    ? 'bg-emerald-100' : 'bg-red-100'
+              const iconColor =
+                o.status === 'attente'   ? 'text-amber-500'   :
+                o.status === 'livraison' ? 'text-blue-500'    :
+                o.status === 'livree'    ? 'text-emerald-500' : 'text-red-400'
+              return (
+                <div key={o.id} className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${iconBg}`}>
+                    <Clock className={`w-4 h-4 ${iconColor}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{o.client}</p>
+                    <p className="text-xs text-gray-400 truncate">{o.product} x1</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-gray-900">{formatPrice(o.amount)}</p>
+                    <p className="text-xs text-gray-400">{relativeDate(o.date)}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-gray-900 border-l-4 border-brand-500 pl-3">Top produits</h2>
+            <span className="text-xs text-gray-400">Les plus vendus</span>
+          </div>
+          <div className="space-y-4">
+            {topProds.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-3">
+                <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{p.name}</p>
+                    <span className="text-sm font-bold text-brand-600 ml-2 shrink-0">{formatPrice(p.price)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${Math.round((p.sold / maxSold) * 100)}%` }} />
+                    </div>
+                    <span className="text-xs text-gray-400 shrink-0">{p.sold} vendus</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }
