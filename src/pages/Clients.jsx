@@ -69,11 +69,10 @@ export default function Clients() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          {
-            label: 'Total clients',    value: clients.length,       icon: <Users         className="w-5 h-5" />, iconBg: 'bg-brand-50 text-brand-500' },
-          { label: 'Revenu total',      value: formatPrice(revenuTotal), icon: <DollarSign  className="w-5 h-5" />, iconBg: 'bg-amber-50 text-amber-500' },
-          { label: 'Fideles (2+ cmd)',  value: fideles,              icon: <UserCheck     className="w-5 h-5" />, iconBg: 'bg-emerald-50 text-emerald-500' },
-          { label: 'Panier moyen',      value: formatPrice(panierMoyen), icon: <ShoppingBasket className="w-5 h-5" />, iconBg: 'bg-blue-50 text-blue-500',
+          { label: 'Total clients',   value: clients.length,           icon: <Users          className="w-5 h-5" />, iconBg: 'bg-brand-50 text-brand-500' },
+          { label: 'Revenu total',    value: formatPrice(revenuTotal), icon: <DollarSign     className="w-5 h-5" />, iconBg: 'bg-amber-50 text-amber-500' },
+          { label: 'Fideles (2+ cmd)',value: fideles,                  icon: <UserCheck      className="w-5 h-5" />, iconBg: 'bg-emerald-50 text-emerald-500' },
+          { label: 'Panier moyen',    value: formatPrice(panierMoyen), icon: <ShoppingBasket className="w-5 h-5" />, iconBg: 'bg-blue-50 text-blue-500' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${s.iconBg}`}>
